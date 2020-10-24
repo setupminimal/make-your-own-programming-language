@@ -58,10 +58,12 @@ with open(sys.argv[1], 'r') as f:
 # here in future commits.
 program.reverse()
 
-# This will be used momentarily in our 'interpret' function.
+# These will be used momentarily in our 'interpret' function.
 # `builtins` is used to represent the basic functions that are defined
 # in python.
 builtins = {}
+# `definitions` is used to hold the definitions of user-defined words
+definitions = {}
 
 def interpret(program, stack=[]):
     """
@@ -74,13 +76,19 @@ def interpret(program, stack=[]):
         # This removes the 'next' word in the program
         word = program.pop()
 
-        # If the word is a built-in word,
+        # If that word is something that the user has defined,
+        # we add the definition of that word onto the program,
+        # which has the effect of making the interpreter do
+        # whatever is in that definition next.
+        if word in definitions.keys():
+            program += definitions[word][:]
+        # If, on the other hand, the word is a built-in word,
         # we just look up its definition and call the python
         # code that implements it. Notice how we pass in both
         # the program and the stack - that will be important
         # later, because it allows builtin words to modify the
         # remaining program.
-        if word in builtins.keys():
+        elif word in builtins.keys():
             builtins[word](program, stack)
         # If the word hasn't been defined, we check to see if
         # it's a constant, like `2`. If so, the data just gets
@@ -134,5 +142,40 @@ builtins['dup'] = dup
 # This means that we can, for example, square a number by duplicating it
 # and multiplying it by itself: `5 dup *`. See Example 2.
 
+# So far, we've just been adding words to the `builtins` dictionary. How
+# can we let people programming in our language define and use their own
+# words? The answer is a cool trick, which explains why we've been passing
+# the program as well as the stack to each of our built-in words. We'll make
+# a built-in word that manipulates the _program_ instead of the stack.
+def define(program, stack):
+    # This word (usually called ':' in Forth, presumably because it looks
+    # pretty) looks at the next word in the program, and then binds that word
+    # to the following sequence of words
+    name = program.pop()
+    definition = []
+    # We search through the program, adding everything that comes before
+    # the next semicolon. Again, the semicolon is traditional. You can use
+    # different words, like 'define' and 'end' if you want to.
+    while program[-1] != ';':
+        definition.append(program.pop())
+    # Then we remove the trailing ';', so that the program won't actually
+    # try to interpret it.
+    program.pop()
+
+    # By adding the words in the way we did, the definition has ended up
+    # backwards relative to the program, so we'll reverse it so that it
+    # matches up.
+    definition.reverse()
+
+    # Finally, we can add the definition to the `definitions` dictionary,
+    # which is used up above in `interpret` to interpret user-defined
+    # words.
+    definitions[name] = definition
+
+builtins[':'] = define
+    
+# We can now define our own words, like `: square dup * ;`, and then use them.
+# See Example 3.
+    
 # Show the results of interpreting the program.
 print(interpret(program))
