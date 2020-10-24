@@ -102,7 +102,37 @@ def interpret(program, stack=[]):
 # them together, and puts the result back on the stack.
 builtins['+'] = lambda p, stack: stack.append(stack.pop() + stack.pop())
 
-# So now we can just show the results of running our program. This would
-# be a great time to go look at example1.ql and make sure that your version
-# of the code works the same, and that you understand what it's doing.
+# The same thing works for multiplication
+builtins['*'] = lambda p, stack: stack.append(stack.pop() * stack.pop())
+
+# But it won't quite work for subtraction. Subtraction actually cares
+# about the order of its arguments, so we want to be careful to pop
+# them off of the stack in the right order. By convention the subtrahend
+# comes on the top of the stack, and the minuend under it.
+# (minuend - subtrahend = result)
+#
+# This means that code like `3 2 -` will be `1`.
+def subtract(program, stack):
+    subtrahend = stack.pop()
+    minuend = stack.pop()
+    stack.append(minuend - subtrahend)
+
+builtins['-'] = subtract
+
+# Arithmetic operations aren't the only thing that we can do, though.
+# Since everything in Forth happens on the stack, another class of basic
+# useful operators are stack-manipulation operators, like `dup` (short for
+# duplicate).
+
+def dup(program, stack):
+    value = stack.pop()
+    stack.append(value)
+    stack.append(value)
+
+builtins['dup'] = dup
+
+# This means that we can, for example, square a number by duplicating it
+# and multiplying it by itself: `5 dup *`. See Example 2.
+
+# Show the results of interpreting the program.
 print(interpret(program))
