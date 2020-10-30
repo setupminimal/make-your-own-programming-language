@@ -176,6 +176,29 @@ builtins[':'] = define
     
 # We can now define our own words, like `: square dup * ;`, and then use them.
 # See Example 3.
-    
+
+# We're still missing one thing to call this program our own: loops
+#
+# We can define our own functions, manipulate values, etc., but we can't
+# ever repeat anything or go back, which means that we can't solve most programming
+# problems. Luckily, there's a really easy way to add looping: Add conditional
+# evaluation, i.e. if statements.
+def unless(program, stack):
+    if stack.pop(): # If the TOS is True
+        program.pop() # Skip the next word
+
+builtins['unless'] = unless
+
+# Then, for demonstration, let's add `==` and `print`.
+
+builtins['=='] = lambda p, stack: stack.append(stack.pop() == stack.pop())
+builtins['print'] = lambda p, stack: print(stack.pop())
+
+# Now we can do loops and if statements. See Example 4! At this point
+# our language is minimally feature complete: It is a working programming
+# language. From here, you might want to try making a few small programs,
+# figuring out what would make writing those easier, and then try adding
+# those features yourself. Happy hacking!
+        
 # Show the results of interpreting the program.
 print(interpret(program))
