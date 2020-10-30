@@ -22,42 +22,6 @@ With that said, let's dive right in.
 
 import sys
 
-# The program that we are to interpret should
-# be passed in as the first and only command-line
-# argument. We will tidy this up to provide a
-# helpful error message later, after we've gotten
-# the core language working.
-with open(sys.argv[1], 'r') as f:
-    # We're basing the language that we're creating here on Forth[1] for a very
-    # simple reason. Most programming languages have some amount of syntax
-    # that we would have to tokenize and parse. Forth-like languages have
-    # basically no syntax at all - programs are just lists of words, separated
-    # by whitespace.
-    #
-    # [1]: https://en.wikipedia.org/wiki/Forth_(programming_language)
-    #
-    # You can think of this step as the 'tokenization' step that a lot of other
-    # programming languages need. The only real difference that since our
-    # syntax is so simple, the code to split the program into tokens is also
-    # really simple. If you wanted to, you could later extend this step
-    # to do more complicated processing (for example, to handle parentheses
-    # differently, so that they don't just get counted as part of the word
-    # that they touch.)
-    program = f.read().split()
-
-# We're later going to treat the source code of the program like a stack,
-# which means frequently popping from and appending to the source. That's
-# more efficient (in Python at least, which uses Array-backed lists) to do
-# from the end, so we reverse the program, so that the first word is at the end
-#
-# This is like the 'parsing' step in other programming languages: We're
-# changing the representation of the program into something that is easier for
-# our interpreter to deal with. In this case, since Forth has very little
-# syntax, that's quite easy. You could extend this step to do more complicated
-# parsing, for example to implement list literals. We'll add more complexity
-# here in future commits.
-program.reverse()
-
 # These will be used momentarily in our 'interpret' function.
 # `builtins` is used to represent the basic functions that are defined
 # in python.
@@ -199,6 +163,53 @@ builtins['print'] = lambda p, stack: print(stack.pop())
 # language. From here, you might want to try making a few small programs,
 # figuring out what would make writing those easier, and then try adding
 # those features yourself. Happy hacking!
-        
-# Show the results of interpreting the program.
-print(interpret(program))
+
+
+if __name__ == '__main__':
+    # Programs to interpret get passed on the command line.
+    # If there are none, or if someone asks for help, show them some help.
+
+    if len(sys.argv) <= 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help':
+        help = f"""
+[python] {sys.argv[0]} programs...
+
+Interpret several minimal forth programs in sequence. Libraries should
+come before the programs that depend on them.
+"""
+        print(help)
+        sys.exit(0)
+
+    for file in sys.argv[1:]:
+        with open(sys.argv[1], 'r') as f:
+            # We're basing the language that we're creating here on Forth[1] for a very
+            # simple reason. Most programming languages have some amount of syntax
+            # that we would have to tokenize and parse. Forth-like languages have
+            # basically no syntax at all - programs are just lists of words, separated
+            # by whitespace.
+            #
+            # [1]: https://en.wikipedia.org/wiki/Forth_(programming_language)
+            #
+            # You can think of this step as the 'tokenization' step that a lot of other
+            # programming languages need. The only real difference that since our
+            # syntax is so simple, the code to split the program into tokens is also
+            # really simple. If you wanted to, you could later extend this step
+            # to do more complicated processing (for example, to handle parentheses
+            # differently, so that they don't just get counted as part of the word
+            # that they touch.)
+            program = f.read().split()
+
+        # We're later going to treat the source code of the program like a stack,
+        # which means frequently popping from and appending to the source. That's
+        # more efficient (in Python at least, which uses Array-backed lists) to do
+        # from the end, so we reverse the program, so that the first word is at the end
+        #
+        # This is like the 'parsing' step in other programming languages: We're
+        # changing the representation of the program into something that is easier for
+        # our interpreter to deal with. In this case, since Forth has very little
+        # syntax, that's quite easy. You could extend this step to do more complicated
+        # parsing, for example to implement list literals. We'll add more complexity
+        # here in future commits.
+        program.reverse()
+            
+        # Show the results of interpreting the program.
+        print(interpret(program))
